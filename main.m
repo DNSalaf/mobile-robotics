@@ -10,9 +10,9 @@ R1 = double(entrada{1});
 R2 = double(entrada{2});
 
 if(R1 == 83 || R1 == 115) %S = 83, N = 78, s = 115, n = 110
-    tarefa1()
+    task1()
 end
 
 if(R2 == 83 || R2 == 115) %S = 83, N = 78, s = 115, n = 110
-    tarefa2()
+    task2()
 end

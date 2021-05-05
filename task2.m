@@ -1,5 +1,5 @@
-function tarefa2()
+function task2()
 %TAREFA 2
 %Formação com dois robôs aéreos, do tipo quadrimotor.
-a = 2
+b = 2
 end
