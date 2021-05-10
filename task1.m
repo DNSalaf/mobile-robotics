@@ -1,4 +1,4 @@
-function task1()
+function [x1,x2,y1,y2,time,norm_erro_vec,xf_erro_vec, yf_erro_vec,rho_f_erro_vec,a_f_erro_vec,veloc_lin_vec1,veloc_lin_vec2,veloc_ang_vec1,veloc_ang_vec2] = task1()
 %TASK 1
 %Formação com dois robôs Pioneer 3-DX (uniciclo).
 
@@ -19,14 +19,25 @@ y2 = -2;
 psi2 = 0;
 a2 = 1; 
 
-theta = [0.2604 0.2509 -0.000499 0.9965 0.00263 1.0768];
+norm_erro_vec = [0 0 0];
+xf_erro_vec = [0 0 0];
+yf_erro_vec = [0 0 0];
+rho_f_erro_vec = [0 0 0];
+a_f_erro_vec = [0 0 0];
 
-Ts = 100e-3; %O período de amostragem considerado deve ser de 100 ms
+veloc_lin_vec1 = zeros(1,4);
+veloc_ang_vec1 = zeros(1,4);
+veloc_lin_vec2 = zeros(1,4);
+veloc_ang_vec2 = zeros(1,4);
 
 v = zeros(1,4);
 vd = zeros(1,4);
 vd_anterior = zeros(1,4);
 vdp = zeros(1,4);
+
+theta = [0.2604 0.2509 -0.000499 0.9965 0.00263 1.0768];
+
+Ts = 100e-3; %O período de amostragem considerado deve ser de 100 ms
 
 lu = 1; lw = 1;
 ku = 0.2; kw = 0.2;
@@ -40,12 +51,12 @@ q_des = [xf yf rho_f a_f]'; %não varia no tempo, pois é tarefa de posicionamento
 %%%%%%%%%%%%%%%%%%%%% Camada de Controle %%%%%%%%%%%%%%%%%%%%%
 q_erro = q_des; %inicialização do erro
 counter = 0;
-img = figure('Name','Alaf do Nascimento Santos');
+%figure %tirar pra animação dps
 while abs(norm(q_erro)) > 0.1 %quanto menor a norma, mais proximo do ponto desejado e maior o tempo de percurso
     q = [x1(counter+1) y1(counter+1) sqrt((x2(counter+1) - x1(counter+1))^2 + (y2(counter+1) - y1(counter+1))^2) atan((y2(counter+1) - y1(counter+1))/(x2(counter+1) - x1(counter+1)))]'; %vai ser a realimentação
     q_erro = q_des - q; %deve decair para zero, mas nunca chegar a zero
     q_ref = L*tanh(inv(L)*k*q_erro);
-
+    
     rho_f = q(3);
     a_f = q(4);
     J_inv = [1 0 1 0;
@@ -60,7 +71,7 @@ while abs(norm(q_erro)) > 0.1 %quanto menor a norma, mais proximo do ponto desej
              0 0 cos(psi2) sin(psi2);
              0 0 (-sin(psi2)/a2) (cos(psi2)/a2)];
 
-    vr = K_inv*x_ref; %contem as velocidades lineares e angulares
+    vr = K_inv*x_ref; %contem as velocidades lineares e angulares refs
      
     
 %%%%%%%%%%%%%%%%%%%%% Camada dos Robôs %%%%%%%%%%%%%%%%%%%%%
@@ -145,39 +156,37 @@ while abs(norm(q_erro)) > 0.1 %quanto menor a norma, mais proximo do ponto desej
 	y2(counter+2) = h2(2)*Ts + y2(counter+1);
     
     
+    %tirar comentario para ver a simulação animada
     plot(x1(counter+1),y1(counter+1),'b--o');
+    grid on
     hold on;
     plot(x2(counter+1),y2(counter+1), 'r--o');
     title('Posicionamento de Robôs Uniciclo')
     legend('Robô 1','Robô 2');
-    axis([0 4.5 -3 5]);
-    
-    pause(Ts);
+    axis([0 4.5 -3 5]);    
+    pause(0.00001); %uma pausa pequena só para ver o movimento "fluido"
     hold off;
     
     
     v = [v1' v2'];
-    counter = counter + 1; %contador de iterações        
+    counter = counter + 1; %contador de iterações
+    
+    norm_erro_vec(counter) = abs(norm(q_erro));
+    xf_erro_vec(counter) = q_erro(1);
+    yf_erro_vec(counter) = q_erro(2);
+    rho_f_erro_vec(counter) = q_erro(3);
+    a_f_erro_vec(counter) = q_erro(4);
+    
+    veloc_lin_vec1(counter) = u1;
+    veloc_ang_vec1(counter) = w1;
+    veloc_lin_vec2(counter) = u2;
+    veloc_ang_vec2(counter) = w2;
+
 end
 
 %calculando tempo de percurso
-fprintf('Tempo de Percurso: %i\n', counter*Ts);
+tempo_total = counter*Ts;
+time = linspace(0,tempo_total,counter);
 
-fprintf('Posição Inicial - Robô 1: (%i,%i)\n', x1(1), y1(1));
-fprintf('Posição final - Robô 1: (%i,%i)\n', x1(counter), y1(counter));
-
-fprintf('Posição Inicial - Robô 2: (%i,%i)\n', x2(1), y2(1));
-fprintf('Posição final - Robô 2: (%i,%i)\n', x2(counter), y2(counter));
-
-img = figure('Name','Alaf do Nascimento Santos');
-plot(x1,y1,'b--o');
-hold on;
-plot(x2,y2, 'r--*');
-title('Trajetória Percorrida')
-legend('Robô 1','Robô 2');
-
-%plotar graficos: trajetória, erro de posição final, distância da formação
-%em relação ao valor final, orientação da formação em relação ao valor final,
-%velocidade linear, velocidade angular, erros nas variaveis "f"
 
 end
