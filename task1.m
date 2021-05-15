@@ -1,4 +1,4 @@
-function [x1,x2,y1,y2,time,norm_erro_vec,xf_erro_vec, yf_erro_vec,rho_f_erro_vec,a_f_erro_vec,veloc_lin_vec1,veloc_lin_vec2,veloc_ang_vec1,veloc_ang_vec2] = task1()
+function [x1,x2,y1,y2,time,norm_erro_vec,xf_erro_vec, yf_erro_vec,rho_f_erro_vec,a_f_erro_vec,veloc_lin_vec1,veloc_lin_vec2,veloc_ang_vec1,veloc_ang_vec2] = task1(animado)
 %TASK 1
 %Formação com dois robôs Pioneer 3-DX (uniciclo).
 
@@ -41,8 +41,8 @@ Ts = 100e-3; %O período de amostragem considerado deve ser de 100 ms
 
 lu = 1; lw = 1;
 ku = 0.2; kw = 0.2;
-v1 = [120 120 120 120];
-v2 = [0.48 0.48 0.48 0.48];
+v1 = [100 100 100 100];
+v2 = [0.15 0.15 0.15 0.15];
 L = diag(v1);
 k = diag(v2);
 
@@ -51,7 +51,6 @@ q_des = [xf yf rho_f a_f]'; %não varia no tempo, pois é tarefa de posicionamento
 %%%%%%%%%%%%%%%%%%%%% Camada de Controle %%%%%%%%%%%%%%%%%%%%%
 q_erro = q_des; %inicialização do erro
 counter = 0;
-%figure %tirar pra animação dps
 while abs(norm(q_erro)) > 0.1 %quanto menor a norma, mais proximo do ponto desejado e maior o tempo de percurso
     q = [x1(counter+1) y1(counter+1) sqrt((x2(counter+1) - x1(counter+1))^2 + (y2(counter+1) - y1(counter+1))^2) atan((y2(counter+1) - y1(counter+1))/(x2(counter+1) - x1(counter+1)))]'; %vai ser a realimentação
     q_erro = q_des - q; %deve decair para zero, mas nunca chegar a zero
@@ -156,17 +155,19 @@ while abs(norm(q_erro)) > 0.1 %quanto menor a norma, mais proximo do ponto desej
 	y2(counter+2) = h2(2)*Ts + y2(counter+1);
     
     
-    %tirar comentario para ver a simulação animada
-    plot(x1(counter+1),y1(counter+1),'b--o');
-    grid on
-    hold on;
-    plot(x2(counter+1),y2(counter+1), 'r--o');
-    title('Posicionamento de Robôs Uniciclo')
-    legend('Robô 1','Robô 2');
-    axis([0 4.5 -3 5]);    
-    pause(0.00001); %uma pausa pequena só para ver o movimento "fluido"
-    hold off;
-    
+    if (animado)
+        plot(x1(counter+1),y1(counter+1),'b--o');
+        grid on
+        hold on;
+        plot(x2(counter+1),y2(counter+1), 'r--o');
+        title('Posicionamento de Robôs Uniciclo')
+        legend('Robô 1','Robô 2');
+        xlabel('x[m]') 
+        ylabel('y[m]')
+        axis([0 4.5 -3 5]);    
+        pause(0.00001); %uma pausa pequena só para ver o movimento "fluido"
+        hold off;
+    end
     
     v = [v1' v2'];
     counter = counter + 1; %contador de iterações
@@ -187,6 +188,4 @@ end
 %calculando tempo de percurso
 tempo_total = counter*Ts;
 time = linspace(0,tempo_total,counter);
-
-
 end
